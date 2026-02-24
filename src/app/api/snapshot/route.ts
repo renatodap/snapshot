@@ -43,8 +43,8 @@ export async function GET() {
       .eq("user_id", uid).gte("start_time", todayStart).lte("start_time", todayEnd)
       .order("start_time", { ascending: true }),
     // Q12: workout_plans
-    sb.from("workout_plans").select("id,plan_date,status,workout_templates(name,workout_type)")
-      .eq("user_id", uid).eq("plan_date", estDate),
+    sb.from("workout_plans").select("id,planned_date,status,workout_templates(name,workout_type)")
+      .eq("user_id", uid).eq("planned_date", estDate),
     // Q13: meal_entries today
     sb.from("meal_entries").select("id,entry_date,meal_label,entry_time,meal_entry_items(logged_calories,logged_protein,logged_carbs,logged_fat)")
       .eq("user_id", uid).eq("entry_date", estDate),

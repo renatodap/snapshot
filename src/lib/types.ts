@@ -122,7 +122,7 @@ export interface CalendarEvent {
 
 export interface WorkoutPlan {
   id: string;
-  plan_date: string | null;
+  planned_date: string | null;
   status: string | null;
   workout_templates: {
     name: string;
