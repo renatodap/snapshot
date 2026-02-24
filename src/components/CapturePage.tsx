@@ -24,6 +24,7 @@ export function CapturePage() {
   } = useCapture();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey && canSend) {
@@ -122,20 +123,37 @@ export function CapturePage() {
 
       {/* Input bar */}
       <div className="flex items-end gap-2 px-4 py-3 border-t border-neutral-800 bg-neutral-950">
+        {/* Camera button — opens native camera */}
+        <button
+          onClick={() => cameraInputRef.current?.click()}
+          className="w-11 h-11 shrink-0 flex items-center justify-center rounded-full bg-neutral-800 text-neutral-300"
+          title="Take photo"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        </button>
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => { if (e.target.files) addPhotos(e.target.files); e.target.value = ""; }}
+        />
+        {/* Gallery button — opens file picker / photo library */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-11 h-11 shrink-0 flex items-center justify-center rounded-full bg-neutral-800 text-neutral-300 text-lg"
+          className="w-11 h-11 shrink-0 flex items-center justify-center rounded-full bg-neutral-800 text-neutral-300"
+          title="Choose from gallery"
         >
-          +
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
         </button>
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           multiple
           className="hidden"
-          onChange={(e) => e.target.files && addPhotos(e.target.files)}
+          onChange={(e) => { if (e.target.files) addPhotos(e.target.files); e.target.value = ""; }}
         />
         <textarea
           value={text}
