@@ -10,3 +10,4 @@ public/workbox-*.js
 public/workbox-*.js.map
 
 .vercel
+.env*.local

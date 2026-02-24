@@ -32,9 +32,9 @@ export async function GET() {
     // Q8: user_preferences
     sb.from("user_preferences").select("wake_time,sleep_time,calorie_goal,protein_goal,coach_personal_context")
       .eq("user_id", uid).single(),
-    // Q9: sleep_records (latest)
+    // Q9: sleep_records (latest) — use limit(1) without .single() to avoid 406 on 0 rows
     sb.from("sleep_records").select("sleep_date,total_sleep_seconds,sleep_score,sleep_score_qualifier,sleep_start_time,sleep_end_time,resting_heart_rate")
-      .eq("user_id", uid).order("sleep_date", { ascending: false }).limit(1).single(),
+      .eq("user_id", uid).order("sleep_date", { ascending: false }).limit(1),
     // Q10: activities today
     sb.from("activities").select("id,activity_date,start_time,activity_type,activity_name,category,duration_seconds,active_calories,total_calories,avg_heart_rate")
       .eq("user_id", uid).eq("activity_date", estDate),
@@ -66,34 +66,52 @@ export async function GET() {
       .eq("user_id", uid).gte("occurrence_count", 3).eq("status", "proposed"),
   ]);
 
-  const extract = (r: PromiseSettledResult<{ data: unknown; error: unknown }>, fallback: unknown = []) => {
+  const labels = [
+    "deadlines", "openLoops", "goals", "journal", "sessions", "habits",
+    "preferences", "sleep", "activities", "calendar", "workoutPlans", "meals",
+    "nutritionContext", "reminders", "commitments", "interventions",
+    "recommendations", "skillProposals",
+  ];
+
+  const errors: Record<string, string> = {};
+
+  const extract = (r: PromiseSettledResult<{ data: unknown; error: unknown }>, label: string, fallback: unknown = []) => {
     if (r.status === "fulfilled") {
-      return r.value.error ? fallback : r.value.data ?? fallback;
+      if (r.value.error) {
+        errors[label] = JSON.stringify(r.value.error);
+        return fallback;
+      }
+      return r.value.data ?? fallback;
     }
+    errors[label] = r.status === "rejected" ? String(r.reason) : "unknown";
     return fallback;
   };
 
   const data = {
     timestamp: estNow,
     estDate,
-    deadlines: extract(results[0]),
-    openLoops: extract(results[1]),
-    goals: extract(results[2]),
-    journal: extract(results[3]),
-    sessions: extract(results[4]),
-    habits: extract(results[5]),
-    preferences: extract(results[6], null),
-    sleep: extract(results[7], null),
-    activities: extract(results[8]),
-    calendar: extract(results[9]),
-    workoutPlans: extract(results[10]),
-    meals: extract(results[11]),
-    nutritionContext: extract(results[12], null),
-    reminders: extract(results[13]),
-    commitments: extract(results[14]),
-    interventions: extract(results[15]),
-    recommendations: extract(results[16]),
-    skillProposals: extract(results[17]),
+    deadlines: extract(results[0], labels[0]),
+    openLoops: extract(results[1], labels[1]),
+    goals: extract(results[2], labels[2]),
+    journal: extract(results[3], labels[3]),
+    sessions: extract(results[4], labels[4]),
+    habits: extract(results[5], labels[5]),
+    preferences: extract(results[6], labels[6], null),
+    sleep: (() => {
+      const rows = extract(results[7], labels[7]);
+      return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+    })(),
+    activities: extract(results[8], labels[8]),
+    calendar: extract(results[9], labels[9]),
+    workoutPlans: extract(results[10], labels[10]),
+    meals: extract(results[11], labels[11]),
+    nutritionContext: extract(results[12], labels[12], null),
+    reminders: extract(results[13], labels[13]),
+    commitments: extract(results[14], labels[14]),
+    interventions: extract(results[15], labels[15]),
+    recommendations: extract(results[16], labels[16]),
+    skillProposals: extract(results[17], labels[17]),
+    _errors: Object.keys(errors).length > 0 ? errors : undefined,
   };
 
   return NextResponse.json(data);
