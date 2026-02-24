@@ -14,7 +14,7 @@ export function CommitmentsSection({ commitments, reminders }: { commitments: Co
             <div key={r.id} className="flex items-start gap-2">
               <span className="text-xs mt-0.5 text-amber-400">!</span>
               <div className="min-w-0">
-                <p className="text-sm">{r.title || r.reminder_text}</p>
+                <p className="text-sm">{r.content}</p>
                 <p className="text-[10px] text-neutral-500">{formatTime(r.remind_at)}</p>
               </div>
             </div>
@@ -28,7 +28,7 @@ export function CommitmentsSection({ commitments, reminders }: { commitments: Co
             <div key={c.id} className="flex items-start gap-2">
               <span className="text-xs mt-0.5 text-blue-400">-</span>
               <div className="min-w-0">
-                <p className="text-sm">{c.commitment_text}</p>
+                <p className="text-sm">{c.content}</p>
                 <p className="text-[10px] text-neutral-500">{relativeTime(c.created_at)}</p>
               </div>
             </div>

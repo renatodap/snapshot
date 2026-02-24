@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const sb = createServerClient();
-  const uid = process.env.SNAPSHOT_USER_ID!;
+  const uid = process.env.SNAPSHOT_USER_ID!.trim();
   const estDate = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
   const estNow = new Date().toLocaleString("en-US", { timeZone: "America/New_York" });
 
@@ -43,7 +43,7 @@ export async function GET() {
       .eq("user_id", uid).gte("start_time", todayStart).lte("start_time", todayEnd)
       .order("start_time", { ascending: true }),
     // Q12: workout_plans
-    sb.from("workout_plans").select("id,plan_date,status,workout_templates(name,category)")
+    sb.from("workout_plans").select("id,plan_date,status,workout_templates(name,workout_type)")
       .eq("user_id", uid).eq("plan_date", estDate),
     // Q13: meal_entries today
     sb.from("meal_entries").select("id,entry_date,meal_label,entry_time,meal_entry_items(logged_calories,logged_protein,logged_carbs,logged_fat)")
@@ -51,18 +51,18 @@ export async function GET() {
     // Q15: nutrition context RPC
     sb.rpc("get_daily_nutrition_context", { p_user_id: uid, p_date: estDate }),
     // Q16: reminders
-    sb.from("dappa_reminders").select("id,title,reminder_text,remind_at,status")
+    sb.from("dappa_reminders").select("id,content,remind_at,recurrence,status")
       .eq("user_id", uid).eq("status", "pending"),
     // Q17: commitments
-    sb.from("dappa_commitments").select("id,commitment_text,context,status,created_at")
+    sb.from("dappa_commitments").select("id,content,due_at,status,created_at")
       .eq("user_id", uid).eq("status", "active"),
     // Q18: interventions
     sb.from("interventions").select("id,intervention_date,intervention_type,description,target_metric,target_domain,baseline_value,outcome_value,effect_size,status")
       .eq("user_id", uid).eq("status", "active"),
     // Q19: recommendations RPC
-    sb.rpc("get_recommendation", { p_user_id: uid, p_domain: "health", p_metric: "sleep_score" }),
+    sb.rpc("get_recommendation", { p_user_id: uid, p_context: "today", p_goal_metric: "sleep_score" }),
     // Q20: skill_proposals
-    sb.from("skill_proposals").select("id,proposal_type,title,description,occurrence_count,status")
+    sb.from("skill_proposals").select("id,proposal_type,name,description,occurrence_count,status")
       .eq("user_id", uid).gte("occurrence_count", 3).eq("status", "proposed"),
   ]);
 

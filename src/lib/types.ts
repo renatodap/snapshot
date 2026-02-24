@@ -126,7 +126,7 @@ export interface WorkoutPlan {
   status: string | null;
   workout_templates: {
     name: string;
-    category: string | null;
+    workout_type: string | null;
   } | null;
 }
 
@@ -164,16 +164,16 @@ export interface NutritionContext {
 
 export interface Reminder {
   id: string;
-  title: string | null;
-  reminder_text: string;
+  content: string;
   remind_at: string;
+  recurrence: string | null;
   status: string;
 }
 
 export interface Commitment {
   id: string;
-  commitment_text: string;
-  context: string | null;
+  content: string;
+  due_at: string | null;
   status: string;
   created_at: string;
 }
@@ -202,7 +202,7 @@ export interface Recommendation {
 export interface SkillProposal {
   id: string;
   proposal_type: string;
-  title: string;
+  name: string;
   description: string | null;
   occurrence_count: number;
   status: string;

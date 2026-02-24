@@ -48,7 +48,7 @@ export function IntelligenceSection({
           {proposals.map((p) => (
             <div key={p.id} className="mb-1.5 flex items-start justify-between">
               <div>
-                <p className="text-sm">{p.title}</p>
+                <p className="text-sm">{p.name}</p>
                 <p className="text-[10px] text-neutral-500">{p.proposal_type} &middot; seen {p.occurrence_count}x</p>
               </div>
             </div>
