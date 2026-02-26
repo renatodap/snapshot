@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
-  { href: "/", label: "Capture", icon: "+" },
-  { href: "/snapshot", label: "Snapshot", icon: "◉" },
+  { href: "/", label: "Capture", icon: "+", exact: true },
+  { href: "/snapshot", label: "Snapshot", icon: "◉", exact: true },
+  { href: "/notes", label: "Notes", icon: "☰", exact: false },
 ];
 
 export function BottomNav() {
@@ -16,7 +17,7 @@ export function BottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div className="flex justify-around max-w-lg mx-auto">
         {tabs.map((tab) => {
-          const active = pathname === tab.href;
+          const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
           return (
             <Link key={tab.href} href={tab.href}
               className={`flex flex-col items-center py-3 px-6 text-xs transition-colors ${
