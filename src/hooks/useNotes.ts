@@ -56,6 +56,60 @@ export function useNotes() {
     }
   }, [view]);
 
+  const toggleCheckbox = useCallback(async (checkboxIndex: number) => {
+    if (!selectedNote) return;
+
+    // Find the nth checkbox in the markdown and toggle it
+    let count = 0;
+    const newContent = selectedNote.content.replace(
+      /- \[([ xX])\]/g,
+      (match, check) => {
+        if (count++ === checkboxIndex) {
+          return check === " " ? "- [x]" : "- [ ]";
+        }
+        return match;
+      }
+    );
+
+    if (newContent === selectedNote.content) return;
+
+    // Optimistic update
+    const updatedNote = { ...selectedNote, content: newContent, updated_at: new Date().toISOString() };
+    setSelectedNote(updatedNote);
+
+    // Update in groups state too
+    setGroups((prev) =>
+      prev.map((g) => ({
+        ...g,
+        notes: g.notes.map((n) => (n.id === updatedNote.id ? updatedNote : n)),
+      }))
+    );
+    if (selectedGroup) {
+      setSelectedGroup((prev) =>
+        prev ? { ...prev, notes: prev.notes.map((n) => (n.id === updatedNote.id ? updatedNote : n)) } : prev
+      );
+    }
+
+    // Persist to DB
+    try {
+      const res = await fetch("/api/notes", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedNote.id, content: newContent }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch {
+      // Revert on failure
+      setSelectedNote(selectedNote);
+      setGroups((prev) =>
+        prev.map((g) => ({
+          ...g,
+          notes: g.notes.map((n) => (n.id === selectedNote.id ? selectedNote : n)),
+        }))
+      );
+    }
+  }, [selectedNote, selectedGroup]);
+
   return {
     groups,
     loading,
@@ -66,6 +120,7 @@ export function useNotes() {
     selectGroup,
     selectNote,
     goBack,
+    toggleCheckbox,
     refresh: fetchNotes,
   };
 }

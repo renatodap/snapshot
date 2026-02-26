@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
 import type { Note, NoteGroup } from "@/lib/notes-types";
 
@@ -70,4 +70,26 @@ export async function GET() {
   }
 
   return NextResponse.json(groups);
+}
+
+export async function PATCH(req: NextRequest) {
+  const sb = createServerClient();
+  const uid = process.env.SNAPSHOT_USER_ID!.trim();
+  const { id, content } = await req.json();
+
+  if (!id || typeof content !== "string") {
+    return NextResponse.json({ error: "id and content required" }, { status: 400 });
+  }
+
+  const { error } = await sb
+    .from("notes")
+    .update({ content, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", uid);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

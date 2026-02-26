@@ -103,7 +103,7 @@ function NoteCard({ note, onSelect }: { note: Note; onSelect: (id: string) => vo
   );
 }
 
-function DetailView({ note, onBack }: { note: Note; onBack: () => void }) {
+function DetailView({ note, onBack, onCheckboxToggle }: { note: Note; onBack: () => void; onCheckboxToggle: (index: number) => void }) {
   return (
     <>
       <BackButton onClick={onBack} label="Back" />
@@ -113,7 +113,7 @@ function DetailView({ note, onBack }: { note: Note; onBack: () => void }) {
       </div>
       <h1 className="text-lg font-bold text-neutral-100 mb-4">{note.title}</h1>
       <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        <MarkdownRenderer content={note.content} />
+        <MarkdownRenderer content={note.content} onCheckboxToggle={onCheckboxToggle} />
       </div>
       {note.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-3">
@@ -130,7 +130,7 @@ function DetailView({ note, onBack }: { note: Note; onBack: () => void }) {
 }
 
 export function NotesPage() {
-  const { groups, loading, error, view, selectedGroup, selectedNote, selectGroup, selectNote, goBack } = useNotes();
+  const { groups, loading, error, view, selectedGroup, selectedNote, selectGroup, selectNote, goBack, toggleCheckbox } = useNotes();
 
   if (loading) {
     return (
@@ -164,7 +164,7 @@ export function NotesPage() {
         <ListView group={selectedGroup} onSelect={selectNote} onBack={goBack} />
       )}
       {view === "detail" && selectedNote && (
-        <DetailView note={selectedNote} onBack={goBack} />
+        <DetailView note={selectedNote} onBack={goBack} onCheckboxToggle={toggleCheckbox} />
       )}
     </div>
   );
